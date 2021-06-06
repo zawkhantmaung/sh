@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# Get OS Type
+ostype=$(uname -s)
+case "${ostype}" in
+    MINGW*) machine="winpty  ";;
+    *)      machine="";;
+esac
+
+# Define Project Root Folder
+# C:\\/Users\\/"Zaw Khant Maung"\\/code
+ROOT_F=~/code
+FLAG=false
+
+# Set Color Variables
+Cyan='\033[0;36m'
+NC='\033[0m' # No Color
+BOLD=$(tput bold)
+NORM=$(tput sgr0)
+
+fun1()
+{
+	read -p "$(echo -e ${Cyan}${BOLD}Enter Project Folder Name You Need To Run: ${NC}${NORM})" fd
+	if [ -z "$fd" ]
+	then
+		fun1
+	else
+		fun2 $fd
+	fi
+}
+
+fun2()
+{
+	echo
+	echo -e "${Cyan}${BOLD} Moving to: $1 ${NC}${NORM}"
+	echo
+
+	docker container stop $(docker container ls -q)
+	docker container prune -f
+
+	cd "$ROOT_F/$1"
+	docker-compose up -d
+
+	$machine  docker exec -it $1"_app_1" composer dump-autoload
+	$machine  docker exec -it $1"_app_1" php artisan migrate:fresh --seed
+	$machine  docker exec -it $1"_app_1" php artisan config:clear
+	$machine  docker exec -it $1"_app_1" php artisan cache:clear
+	$machine  docker exec -it $1"_app_1" php artisan config:cache
+	$machine  docker exec -it $1"_app_1" php artisan route:clear
+	clear
+	docker container ls -a
+}
+
+fun3()
+{
+	read -p "$(echo -e ${Cyan}${BOLD}Enter Your Root Folder Location: ${NC}${NORM})" VL;
+	if [ -z "$VL" ]
+	then
+		fun3
+	else
+		sed -i "12 s/\(ROOT_F=\).*/\1$VL/" C:/"Program Files"/Git/usr/bin/hmo.exe
+		sed -i "13 s/\(FLAG=\).*/\1true/" C:/"Program Files"/Git/usr/bin/hmo.exe
+	fi
+}
+
+
+while ! $FLAG; do
+    read -p "$(echo -e ${Cyan}${BOLD} Your HMO Projects is under [~/code] folder ${NC}${NORM})?" yn
+	case $yn in
+		[Yy]* )
+			sed -i "13 s/\(FLAG=\).*/\1true/" C:/"Program Files"/Git/usr/bin/hmo.exe;
+			break;;
+		[Nn]* )
+			fun3;
+			exit 1;;
+		* )
+			echo "Please answer yes or no.";
+			exit 1;;
+	esac
+done
+
+if [ -z "$1" ]
+then
+	fun1
+else
+	fun2 $1
+fi
