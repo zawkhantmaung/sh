@@ -46,6 +46,8 @@ fun2()
 	$machine  docker exec -it $1"_app_1" php artisan config:clear
 	$machine  docker exec -it $1"_app_1" php artisan cache:clear
 	$machine  docker exec -it $1"_app_1" php artisan config:cache
+	$machine  docker exec -it $1"_app_1" php artisan config:clear
+	$machine  docker exec -it $1"_app_1" php artisan cache:clear
 	$machine  docker exec -it $1"_app_1" php artisan route:clear
 	clear
 	docker container ls -a
